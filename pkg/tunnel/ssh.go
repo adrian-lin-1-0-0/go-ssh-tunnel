@@ -61,3 +61,16 @@ func NewSSHConn(client *ssh.Client, addr net.Addr) (*net.Conn, error) {
 	}
 	return &conn, nil
 }
+
+func NewSSHListener(client *ssh.Client, addr net.Addr) (*net.Listener, error) {
+	addrStr := addr.String()
+	if strings.Index(addrStr, ":") == 0 {
+		addrStr = "0.0.0.0" + addrStr
+	}
+
+	listener, err := client.Listen("tcp", addrStr)
+	if err != nil {
+		return nil, errors.New(err.Error() + ", ssh.Client : tcp.Listen addr " + addr.String())
+	}
+	return &listener, nil
+}

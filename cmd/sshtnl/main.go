@@ -19,15 +19,17 @@ Common Options:
     -s,                              ssh server address (127.0.0.1[:22] )
     -t,                              target address (:80)
     -l,                              local address (:80)
+    -d,                              direction ,f or b (forward , backend)
 `
 
 var (
-	user    string
-	pwd     string
-	keyPath string
-	svrAddr string
-	srcAddr string
-	dstAddr string
+	user      string
+	pwd       string
+	keyPath   string
+	svrAddr   string
+	srcAddr   string
+	dstAddr   string
+	direction string
 )
 
 func init() {
@@ -37,6 +39,7 @@ func init() {
 	flag.StringVar(&svrAddr, "s", "127.0.0.1:22", "ssh server address")
 	flag.StringVar(&dstAddr, "t", "0.0.0.0:80", "target address")
 	flag.StringVar(&srcAddr, "l", "0.0.0.0:80", "local address")
+	flag.StringVar(&direction, "d", "f", "direction ,f or b (forward , backend)")
 
 	flag.Usage = usage
 	flag.Parse()
@@ -54,5 +57,5 @@ func main() {
 	if -1 == strings.Index(svrAddr, ":") {
 		svrAddr += ":22"
 	}
-	tunnel.NewTunnel(user, pwd, keyPath, svrAddr, srcAddr, dstAddr)
+	tunnel.NewTunnel(user, pwd, keyPath, svrAddr, srcAddr, dstAddr, direction)
 }

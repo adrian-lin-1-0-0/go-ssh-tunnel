@@ -15,7 +15,7 @@ type Tunnel struct {
 	DstAddr   net.Addr
 }
 
-func NewTunnel(user, pwd, keyPath, svrAddr, srcAddr, dstAddr string) {
+func NewTunnel(user, pwd, keyPath, svrAddr, srcAddr, dstAddr, direction string) {
 	if svrAddr == "" {
 		svrAddr = ":22"
 	}
@@ -31,9 +31,17 @@ func NewTunnel(user, pwd, keyPath, svrAddr, srcAddr, dstAddr string) {
 	if err != nil {
 		log.Fatalln("Create tunnel failed ", err.Error())
 	}
-	if err = t.Run(); err != nil {
-		log.Fatalln("Run tunnel failed ", err.Error())
+
+	if direction == "f" {
+		if err = t.Forward(); err != nil {
+			log.Fatalln("Run tunnel failed ", err.Error())
+		}
+	} else {
+		if err = t.Backward(); err != nil {
+			log.Fatalln("Run tunnel failed ", err.Error())
+		}
 	}
+
 }
 
 func New(config Config) (*Tunnel, error) {
@@ -66,7 +74,7 @@ func New(config Config) (*Tunnel, error) {
 
 }
 
-func (t *Tunnel) Run() error {
+func (t *Tunnel) Forward() error {
 
 	sshClinet, err := NewSSHClient(t.SSHConfig, t.SvrAddr)
 	if err != nil {
@@ -94,6 +102,36 @@ func (t *Tunnel) Run() error {
 		defer (*sshConn).Close()
 		log.Printf("%s -> (%s)%s", tcpConn.RemoteAddr().String(), t.SvrAddr.String(), t.DstAddr.String())
 		go pipe(tcpConn, *sshConn)
+	}
+}
+
+func (t *Tunnel) Backward() error {
+	sshClinet, err := NewSSHClient(t.SSHConfig, t.SvrAddr)
+	if err != nil {
+		return err
+	}
+
+	sshListener, err := NewSSHListener(sshClinet, t.DstAddr)
+	if err != nil {
+		return err
+	}
+
+	defer (*sshListener).Close()
+	for {
+		sshConn, err := (*sshListener).Accept()
+		if err != nil {
+			if opErr, ok := err.(*net.OpError); ok && opErr.Timeout() {
+				continue
+			}
+			return err
+		}
+		tcpConn, err := NewTcpConn(t.SrcAddr)
+		if err != nil {
+			return err
+		}
+		defer (*tcpConn).Close()
+		log.Printf("%s <- (%s)%s", t.SrcAddr.String(), t.SvrAddr.String(), sshConn.RemoteAddr().String())
+		go pipe(sshConn, (*tcpConn))
 	}
 }
 
