@@ -50,7 +50,7 @@ import (
 
 func main() {
 	user := "adrian"
-    pwd:= "adrian-dev"
+	pwd:= "adrian-dev"
 	keyPath := ""
 	svrAddr := "10.0.0.1:22"
 	srcAddr := ":3306"
