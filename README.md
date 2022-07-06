@@ -71,7 +71,7 @@ func main() {
 	svrAddr := "10.0.0.1:22"
 	srcAddr := ":3306"
 	dstAddr := ":3306"
-    direction := "f" //f or b (forward or backward)
-	tunnel.NewTunnel(user, pwd, "", svrAddr, srcAddr, dstAddr)
+	direction := "f" //f or b (forward or backward)
+	tunnel.NewTunnel(user, pwd, keyPath, svrAddr, srcAddr, dstAddr, direction)
 }
 ```
